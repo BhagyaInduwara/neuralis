@@ -48,8 +48,32 @@ export default function Navigation() {
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
+  // Lock scrolling behind the full-screen mobile menu — pause Lenis (which
+  // drives scroll via JS and ignores plain CSS overflow) and fall back to
+  // locking the root element for the reduced-motion / no-Lenis case.
+  useEffect(() => {
+    const lenis = (window as unknown as { __lenis?: { stop: () => void; start: () => void } })
+      .__lenis;
+    if (menuOpen) {
+      lenis?.stop();
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      lenis?.start();
+      document.documentElement.style.overflow = "";
+    }
+    return () => {
+      lenis?.start();
+      document.documentElement.style.overflow = "";
+    };
+  }, [menuOpen]);
+
   const go = (href: string) => {
     setMenuOpen(false);
+    // Resume Lenis synchronously — the effect that would normally do this
+    // on menuOpen flipping to false hasn't run yet (effects fire after the
+    // next commit), and scrollToSection below needs it running now.
+    (window as unknown as { __lenis?: { start: () => void } }).__lenis?.start();
+    document.documentElement.style.overflow = "";
     scrollToSection(href.replace("#", ""));
   };
 
@@ -121,23 +145,33 @@ export default function Navigation() {
       {menuOpen && (
         <nav
           aria-label="Mobile"
-          className="flex flex-col gap-1 border-t border-white/[0.06] bg-[#050506]/95 px-6 py-6 backdrop-blur-md md:hidden"
+          className="fixed inset-0 top-[73px] z-40 flex flex-col justify-between bg-[#050506] px-6 pb-10 pt-8 md:hidden"
         >
-          {NAV_LINKS.map((link) => (
+          <div className="flex flex-col gap-1">
+            {NAV_LINKS.map((link, i) => (
+              <button
+                key={link.href}
+                onClick={() => go(link.href)}
+                style={{ animationDelay: `${i * 40}ms` }}
+                className="mobile-nav-item border-b border-white/[0.06] py-5 text-left font-mono text-2xl tracking-wide text-[#f5f5f2] transition-colors hover:text-[#ff8a3d]"
+              >
+                {link.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-6">
             <button
-              key={link.href}
-              onClick={() => go(link.href)}
-              className="py-3 text-left font-mono text-xs tracking-[0.25em] text-[#c9c9cf] hover:text-[#ff8a3d]"
+              onClick={() => go("#cta")}
+              className="mobile-nav-item border border-white/15 px-4 py-4 text-center font-mono text-xs tracking-[0.25em] text-[#f5f5f2]"
+              style={{ animationDelay: `${NAV_LINKS.length * 40}ms` }}
             >
-              {link.label}
+              [ CONNECT ]
             </button>
-          ))}
-          <button
-            onClick={() => go("#cta")}
-            className="mt-2 border border-white/15 px-4 py-3 text-left font-mono text-xs tracking-[0.25em] text-[#f5f5f2]"
-          >
-            [ CONNECT ]
-          </button>
+            <p className="text-center font-mono text-[10px] tracking-[0.15em] text-[#86868d]">
+              © 2026 NEURALIS LABS
+            </p>
+          </div>
         </nav>
       )}
     </header>

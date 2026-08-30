@@ -64,7 +64,7 @@ export default function Technology() {
             onMouseLeave={() => {
               interactionState.pulseTarget = 0;
             }}
-            className="tech-card group relative flex min-h-[280px] flex-col justify-between bg-[#08080a] p-8 transition-all duration-500 hover:-translate-y-1.5 hover:bg-[#0c0c0f]"
+            className="tech-card group relative flex flex-col justify-between gap-8 bg-[#08080a] p-6 transition-all duration-500 hover:-translate-y-1.5 hover:bg-[#0c0c0f] sm:min-h-[280px] sm:p-8"
           >
             <div>
               <span className="font-mono text-xs text-[#86868d] transition-colors duration-500 group-hover:text-[#ff8a3d]">

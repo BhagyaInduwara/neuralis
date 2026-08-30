@@ -131,7 +131,7 @@ export default function Scene({ onReady }: SceneProps) {
       <Lighting />
       <Suspense fallback={null}>
         <Chip />
-        <CircuitBoard count={traceCount} />
+        <CircuitBoard count={traceCount} quality={quality} />
         <EnergyPulses count={traceCount} maxPulses={quality === "high" ? 16 : 8} />
         <Particles quality={quality} />
       </Suspense>

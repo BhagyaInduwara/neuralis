@@ -11,16 +11,21 @@ import { damp, mapRange } from "@/lib/utils";
 
 interface CircuitBoardProps {
   count?: number;
+  /** Narrow viewports stack text full-width over the scene, so traces are
+   * dimmed to stay out of the way of content instead of crossing through it. */
+  quality?: "high" | "low";
 }
 
 type LineMesh = THREE.Object3D & {
   material: THREE.LineBasicMaterial | THREE.Material;
 };
 
-export default function CircuitBoard({ count = 42 }: CircuitBoardProps) {
+export default function CircuitBoard({ count = 42, quality = "high" }: CircuitBoardProps) {
   const traces = useMemo(() => generateCircuitPaths(9137, count), [count]);
   const glowRefs = useRef<(LineMesh | null)[]>([]);
   const intensityRef = useRef(0.55);
+  const opacityCeiling = quality === "high" ? 1 : 0.6;
+  const dimOpacity = quality === "high" ? 0.28 : 0.14;
 
   const dimTraces = traces.filter((t) => !t.glow);
   const glowTraces = traces.filter((t) => t.glow);
@@ -39,7 +44,7 @@ export default function CircuitBoard({ count = 42 }: CircuitBoardProps) {
       2,
       delta
     );
-    const opacity = mapRange(intensityRef.current, 0, 1, 0.35, 1);
+    const opacity = mapRange(intensityRef.current, 0, 1, 0.35, opacityCeiling);
 
     glowRefs.current.forEach((mesh) => {
       if (!mesh) return;
@@ -57,7 +62,7 @@ export default function CircuitBoard({ count = 42 }: CircuitBoardProps) {
           color="#3c3f48"
           lineWidth={1}
           transparent
-          opacity={0.28}
+          opacity={dimOpacity}
           toneMapped
         />
       ))}

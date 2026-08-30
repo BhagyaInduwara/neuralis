@@ -57,9 +57,13 @@ export default function Performance() {
         BUILT TO SUSTAIN PEAK LOAD, INDEFINITELY.
       </h2>
 
-      <div className="mt-20 grid grid-cols-1 gap-12 border-t border-white/10 pt-14 sm:grid-cols-3">
+      <div className="relative mt-20 grid grid-cols-1 gap-12 border-t border-white/10 pt-14 sm:grid-cols-3">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -inset-x-4 -inset-y-2 bg-[#050506]/60 sm:hidden"
+        />
         {PERFORMANCE_STATS.map((stat) => (
-          <div key={stat.label}>
+          <div key={stat.label} className="relative">
             <div className="flex items-baseline gap-2 font-mono text-[#f5f5f2]">
               <span
                 className="perf-value text-5xl font-semibold tracking-tight tabular-nums md:text-6xl"
