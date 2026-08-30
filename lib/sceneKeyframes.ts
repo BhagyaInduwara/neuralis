@@ -22,30 +22,36 @@ export const SCENE_KEYFRAMES: SceneKeyframe[] = [
     circuitIntensity: 0.55,
   },
   {
+    // Technology section: cards occupy the lower two-thirds of the viewport,
+    // so the chip is framed small and high, clear of the card row instead of
+    // vanishing behind it.
     progress: 0.2,
-    camPos: [1.3, 1.7, 5.3],
-    lookAt: [0, -0.15, 0],
-    fov: 25,
+    camPos: [2.1, 2.7, 5.6],
+    lookAt: [0.55, -1.15, 0],
+    fov: 22,
     chipPos: [0, -0.05, 0],
-    chipScale: 1.05,
+    chipScale: 0.66,
     circuitIntensity: 0.75,
   },
   {
+    // Performance section: the stat row spans the full width at mid-height,
+    // so the chip is pushed up above it rather than sitting behind the
+    // middle number.
     progress: 0.42,
-    camPos: [-2.1, 1.4, 5.9],
-    lookAt: [0.25, -0.1, 0],
-    fov: 29,
+    camPos: [-1.6, 2.9, 5.6],
+    lookAt: [0.2, -1.3, 0],
+    fov: 24,
     chipPos: [0, 0, 0],
-    chipScale: 1,
+    chipScale: 0.72,
     circuitIntensity: 0.6,
   },
   {
     progress: 0.62,
     camPos: [0, 3.6, 10.5],
-    lookAt: [0, -0.3, 0],
+    lookAt: [0, -0.55, 0],
     fov: 38,
     chipPos: [0, 0, -1.1],
-    chipScale: 0.82,
+    chipScale: 0.62,
     circuitIntensity: 1,
   },
   {

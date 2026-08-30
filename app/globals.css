@@ -36,6 +36,12 @@ body {
   color: #ffffff;
 }
 
+:focus-visible {
+  outline: 1.5px solid var(--color-amber);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
 .cursor-none,
 .cursor-none * {
   cursor: none !important;

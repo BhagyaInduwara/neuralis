@@ -6,12 +6,19 @@ import { RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { generateDiePattern, generatePinGrid } from "@/lib/dieDetails";
 
-const DIE_COLOR_ACTIVE = new THREE.Color("#ff8a3d").multiplyScalar(2.4);
-const DIE_COLOR_IDLE = new THREE.Color("#33343a");
+const DIE_COLOR_ACTIVE = new THREE.Color("#ff8a3d").multiplyScalar(1.7);
+const DIE_COLOR_IDLE = new THREE.Color("#2c2d33");
 const PIN_COLOR = new THREE.Color("#8b8d94");
+const EMBLEM_CLEARANCE = 0.24;
 
 function DieBars() {
-  const bars = useMemo(() => generateDiePattern(1337, 13, 0.105, 0.14), []);
+  const bars = useMemo(
+    () =>
+      generateDiePattern(1337, 26, 0.0527, 0.13).filter(
+        (bar) => Math.hypot(bar.x, bar.z) > EMBLEM_CLEARANCE
+      ),
+    []
+  );
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   useLayoutEffect(() => {
@@ -38,7 +45,7 @@ function DieBars() {
       args={[undefined, undefined, bars.length]}
       position={[0, 0.286, 0]}
     >
-      <boxGeometry args={[1, 0.014, 0.026]} />
+      <boxGeometry args={[1, 0.01, 0.013]} />
       <meshBasicMaterial toneMapped={false} />
     </instancedMesh>
   );
@@ -79,28 +86,38 @@ function PinGrid() {
 }
 
 function CenterEmblem() {
-  const ref = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<THREE.Mesh>(null);
+  const coreRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const material = ref.current.material as THREE.MeshBasicMaterial;
-    const pulse = 0.75 + Math.sin(clock.elapsedTime * 1.4) * 0.25;
-    material.color
-      .set("#ff8a3d")
-      .multiplyScalar(1.6 + pulse * 0.8);
+    const pulse = 0.7 + Math.sin(clock.elapsedTime * 1.4) * 0.3;
+    if (ringRef.current) {
+      const material = ringRef.current.material as THREE.MeshBasicMaterial;
+      material.color.set("#ff8a3d").multiplyScalar(1.1 + pulse * 0.35);
+    }
+    if (coreRef.current) {
+      const material = coreRef.current.material as THREE.MeshBasicMaterial;
+      material.color.set("#ffb066").multiplyScalar(0.9 + pulse * 0.25);
+    }
   });
 
   return (
-    <mesh ref={ref} position={[0, 0.283, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <ringGeometry args={[0.1, 0.16, 6]} />
-      <meshBasicMaterial toneMapped={false} />
-    </mesh>
+    <group position={[0, 0.283, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh ref={ringRef}>
+        <ringGeometry args={[0.128, 0.15, 6]} />
+        <meshBasicMaterial toneMapped={false} />
+      </mesh>
+      <mesh ref={coreRef}>
+        <circleGeometry args={[0.05, 6]} />
+        <meshBasicMaterial toneMapped={false} />
+      </mesh>
+    </group>
   );
 }
 
 function EdgeFrame() {
   const size = 1.62;
-  const thickness = 0.018;
+  const thickness = 0.012;
   const y = 0.178;
   const color = "#ff8a3d";
 

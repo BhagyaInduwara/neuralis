@@ -67,7 +67,7 @@ export default function Technology() {
             className="tech-card group relative flex min-h-[280px] flex-col justify-between bg-[#08080a] p-8 transition-all duration-500 hover:-translate-y-1.5 hover:bg-[#0c0c0f]"
           >
             <div>
-              <span className="font-mono text-xs text-[#6f6f76] transition-colors duration-500 group-hover:text-[#ff8a3d]">
+              <span className="font-mono text-xs text-[#86868d] transition-colors duration-500 group-hover:text-[#ff8a3d]">
                 {card.index}
               </span>
               <h3 className="mt-6 text-lg font-medium tracking-wide text-[#f5f5f2]">

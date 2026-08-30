@@ -8,11 +8,16 @@ export interface CircuitTrace {
 }
 
 const AXES: Array<"x" | "z"> = ["x", "z"];
+/** Shared step so independent traces snap to the same lines, like a real PCB grid. */
+const GRID = 0.52;
+const snap = (v: number) => Math.round(v / GRID) * GRID;
 
 /**
  * Procedurally generates right-angle circuit traces radiating outward from the
- * chip toward the edges of the scene, on a fixed plane. Deterministic given a
- * seed so the pattern is stable across re-renders.
+ * chip toward the edges of the scene, on a fixed plane. Every turn snaps to a
+ * shared grid so independently-generated traces align with each other the way
+ * real PCB routing does, instead of reading as scattered random fragments.
+ * Deterministic given a seed so the pattern is stable across re-renders.
  */
 export function generateCircuitPaths(
   seed: number,
@@ -27,9 +32,9 @@ export function generateCircuitPaths(
   const traces: CircuitTrace[] = [];
 
   for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2 + (rand() - 0.5) * 0.35;
-    const startX = Math.cos(angle) * minRadius;
-    const startZ = Math.sin(angle) * minRadius;
+    const angle = (i / count) * Math.PI * 2 + (rand() - 0.5) * 0.12;
+    const startX = snap(Math.cos(angle) * minRadius);
+    const startZ = snap(Math.sin(angle) * minRadius);
 
     // Snap the initial heading to whichever cardinal axis the start point favors.
     let axisIndex = Math.abs(startX) > Math.abs(startZ) ? 0 : 1;
@@ -43,12 +48,13 @@ export function generateCircuitPaths(
     for (let s = 0; s < segmentCount && radius < maxRadius; s++) {
       const axis = AXES[axisIndex];
       const dirSign = Math.sign(axis === "x" ? x || 1 : z || 1) || 1;
-      const segLength = 0.7 + rand() * 1.8;
+      const steps = 2 + Math.floor(rand() * 4);
+      const segLength = steps * GRID;
 
       if (axis === "x") {
-        x += dirSign * segLength;
+        x = snap(x + dirSign * segLength);
       } else {
-        z += dirSign * segLength;
+        z = snap(z + dirSign * segLength);
       }
 
       points.push([x, y, z]);

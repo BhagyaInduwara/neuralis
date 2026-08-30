@@ -33,7 +33,11 @@ export default function SmoothScrollProvider({
       lenis.on("scroll", ScrollTrigger.update);
 
       raf = (time: number) => {
-        lenis?.raf(time);
+        // gsap.ticker reports elapsed time in seconds; Lenis expects a
+        // millisecond rAF-style timestamp to compute its internal delta.
+        // Without this conversion Lenis's internal clock advances ~1000x
+        // too slowly and scrolling appears to almost completely stall.
+        lenis?.raf(time * 1000);
       };
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
@@ -52,7 +56,6 @@ export default function SmoothScrollProvider({
       },
     });
 
-    (window as unknown as { __ST?: typeof ScrollTrigger }).__ST = ScrollTrigger;
     const refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 200);
 
     return () => {

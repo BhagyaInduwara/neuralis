@@ -33,7 +33,7 @@ export default function Footer() {
         </nav>
       </div>
 
-      <p className="mx-auto mt-14 max-w-[1600px] font-mono text-[10px] tracking-[0.15em] text-[#6f6f76]">
+      <p className="mx-auto mt-14 max-w-[1600px] font-mono text-[10px] tracking-[0.15em] text-[#86868d]">
         © 2026 NEURALIS LABS
       </p>
     </footer>

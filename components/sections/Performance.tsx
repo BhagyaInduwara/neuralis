@@ -62,7 +62,7 @@ export default function Performance() {
           <div key={stat.label}>
             <div className="flex items-baseline gap-2 font-mono text-[#f5f5f2]">
               <span
-                className="perf-value text-5xl font-semibold tabular-nums md:text-6xl"
+                className="perf-value text-5xl font-semibold tracking-tight tabular-nums md:text-6xl"
                 data-value={stat.value}
                 data-decimals={stat.decimals}
               >
@@ -75,7 +75,7 @@ export default function Performance() {
                 <span className="text-xl text-[#8a8a8f]">{stat.unit}</span>
               )}
             </div>
-            <p className="mt-3 font-mono text-[11px] tracking-[0.2em] text-[#6f6f76]">
+            <p className="mt-3 font-mono text-[11px] tracking-[0.2em] text-[#86868d]">
               {stat.label}
             </p>
           </div>

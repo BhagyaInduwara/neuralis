@@ -109,7 +109,7 @@ export default function Hero() {
       <dl className="mt-16 grid grid-cols-2 gap-x-8 gap-y-5 sm:mt-20 sm:flex sm:flex-wrap sm:gap-x-12 lg:absolute lg:bottom-24 lg:right-10 lg:mt-0 lg:flex lg:max-w-[220px] lg:flex-col lg:gap-6">
         {HERO_READOUTS.map((item) => (
           <div key={item.label} className="hero-readout">
-            <dt className="font-mono text-[9px] tracking-[0.2em] text-[#6f6f76]">
+            <dt className="font-mono text-[9px] tracking-[0.2em] text-[#86868d]">
               {item.label}
             </dt>
             <dd className="mt-1 font-mono text-[13px] text-[#d8d8dc]">
@@ -120,7 +120,7 @@ export default function Hero() {
       </dl>
 
       <div className="hero-scroll absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3">
-        <span className="font-mono text-[10px] tracking-[0.3em] text-[#6f6f76]">
+        <span className="font-mono text-[10px] tracking-[0.3em] text-[#86868d]">
           SCROLL TO EXPLORE
         </span>
         <span className="relative h-10 w-px overflow-hidden bg-white/10">

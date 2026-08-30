@@ -34,18 +34,22 @@ export default function Chip() {
     const reduced = motionPrefs.reduced;
     const t = state.clock.elapsedTime;
 
-    // Idle living-machine motion: slow rotation, gentle float, subtle breathing.
-    const idleRotSpeed = reduced ? 0.015 : 0.08;
-    innerGroup.rotation.y += delta * idleRotSpeed;
-
-    const floatY = reduced ? 0 : Math.sin(t * 0.55) * 0.035;
-    const breathe = reduced ? 0 : Math.sin(t * 0.35) * 0.012;
+    // Idle living-machine motion: a slow, bounded sway rather than a full
+    // rotation — two incommensurate sine waves keep it from ever repeating
+    // in an obvious loop or reading as a product turntable.
+    const swaySpeed = reduced ? 0.15 : 1;
+    const swayY = reduced
+      ? 0
+      : Math.sin(t * 0.09) * 0.22 + Math.sin(t * 0.031) * 0.14;
+    const floatY = reduced ? 0 : Math.sin(t * 0.55 * swaySpeed) * 0.035;
+    const breathe = reduced ? 0 : Math.sin(t * 0.35 * swaySpeed) * 0.012;
 
     // Pointer-driven tilt, heavily damped so it feels fluid rather than direct.
     const tiltX = reduced ? 0 : pointerState.targetY * 0.14;
     const tiltZ = reduced ? 0 : -pointerState.targetX * 0.16;
 
     innerGroup.rotation.x = damp(innerGroup.rotation.x, tiltX + breathe, 2.4, delta);
+    innerGroup.rotation.y = damp(innerGroup.rotation.y, swayY, 1.6, delta);
     innerGroup.rotation.z = damp(innerGroup.rotation.z, tiltZ, 2.4, delta);
     innerGroup.position.y = damp(innerGroup.position.y, floatY, 2.4, delta);
   });

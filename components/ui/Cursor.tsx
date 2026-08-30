@@ -10,6 +10,7 @@ export default function Cursor() {
   const reduced = useReducedMotion();
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const active = !isTouch && !reduced;
 
   useEffect(() => {
@@ -20,10 +21,17 @@ export default function Cursor() {
     const ringScale = { current: 1, target: 1 };
     let raf = 0;
     let last = performance.now();
+    let revealed = false;
 
     const onMove = (e: PointerEvent) => {
       target.x = e.clientX;
       target.y = e.clientY;
+      if (!revealed) {
+        revealed = true;
+        pos.x = target.x;
+        pos.y = target.y;
+        if (wrapperRef.current) wrapperRef.current.style.opacity = "1";
+      }
     };
 
     const onOver = (e: PointerEvent) => {
@@ -67,7 +75,11 @@ export default function Cursor() {
   if (!active) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[90]" aria-hidden="true">
+    <div
+      ref={wrapperRef}
+      className="pointer-events-none fixed inset-0 z-[90] opacity-0 transition-opacity duration-300"
+      aria-hidden="true"
+    >
       <div
         ref={dotRef}
         className="fixed left-0 top-0 h-1 w-1 rounded-full bg-[#ff8a3d]"
