@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --color-black: #050506;
+  --color-charcoal: #0a0a0c;
+  --color-metal: #1a1b1e;
+  --color-amber: #ff8a3d;
+  --color-amber-bright: #ffb066;
+  --color-foreground: #f5f5f2;
+  --color-muted: #8a8a8f;
+}
+
+@theme inline {
+  --color-background: var(--color-black);
+  --color-foreground: var(--color-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  scrollbar-color: #3a3a3f var(--color-black);
+}
+
+html {
+  background: var(--color-black);
+}
+
+body {
+  background: var(--color-black);
+  color: var(--color-foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(255, 138, 61, 0.35);
+  color: #ffffff;
+}
+
+.cursor-none,
+.cursor-none * {
+  cursor: none !important;
+}
+
+@keyframes scroll-line-move {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(200%);
+  }
+}
+
+.scroll-line {
+  animation: scroll-line-move 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-line {
+    animation: none;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
+}
