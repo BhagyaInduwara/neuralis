@@ -14,14 +14,14 @@ export default function Architecture() {
       id="architecture"
       className="relative flex min-h-[100svh] flex-col justify-center px-6 pb-24 pt-[120px] md:px-10 lg:px-16 stacked:justify-start"
     >
-      <div className="relative z-10 max-w-md">
+      <div id="arch-copy" className="relative z-10 w-fit max-w-md">
         <TypeLabel
           text="SYSTEM 04 / ARCHITECTURE"
           className="mb-5 font-mono text-[11px] tracking-[0.3em] text-[#ff8a3d]"
         />
         <RevealHeading
           lines={["ONE CORE,", "FIVE SUBSYSTEMS,", "ZERO BOTTLENECKS."]}
-          className="text-4xl font-semibold leading-tight tracking-tight text-[#f5f5f2] md:text-5xl"
+          className="text-[clamp(1.75rem,8.4vw,2.25rem)] font-semibold leading-tight tracking-tight text-[#f5f5f2] md:text-[clamp(2.25rem,3.3vw,3rem)]"
         />
 
         <ul className="arch-list mt-10 grid-cols-1 gap-4 sm:grid-cols-2">

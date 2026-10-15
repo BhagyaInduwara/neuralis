@@ -98,7 +98,7 @@ const ARCH: Omit<SceneKeyframe, "at"> = {
   distance: 14.5,
   fov: 30,
   fit: 4.7,
-  shiftX: 0.14,
+  shiftX: 0.18,
   shiftY: -0.04,
   chipScale: 0.85,
   pulseDensity: 0.55,

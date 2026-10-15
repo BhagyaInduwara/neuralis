@@ -33,8 +33,12 @@ interface ModuleLayout {
   dir: THREE.Vector2;
   angle: number;
   size: [number, number, number];
-  placement: Placement;
-  labelAnchor: [number, number, number];
+  /** Preferred label side first, then fallbacks if it would hit the copy. */
+  placements: Placement[];
+  /** World-space anchor on the module's edge for each side. */
+  anchors: Record<Placement, THREE.Vector3>;
+  /** Html is pinned here; per-frame pixel offsets move it to the chosen anchor. */
+  labelOrigin: [number, number, number];
   linkLength: number;
   linkStart: THREE.Vector3;
 }
@@ -72,15 +76,24 @@ function useLayouts(stacked: boolean): ModuleLayout[] {
             : dir.y < 0
               ? "above"
               : "below";
+        const vertical: Placement[] = dir.y < 0 ? ["above", "below"] : ["below", "above"];
+        const horizontal: Placement[] = dir.x >= 0 ? ["right", "left"] : ["left", "right"];
+        const placements: Placement[] =
+          placement === "above" || placement === "below"
+            ? [placement, ...horizontal, ...vertical.filter((v) => v !== placement)]
+            : [placement, ...vertical];
+
         // World-axis half extents of the rotated footprint.
         const [depth, width] = size;
         const extentX = (Math.abs(dir.x) * depth + Math.abs(dir.y) * width) / 2;
         const extentZ = (Math.abs(dir.y) * depth + Math.abs(dir.x) * width) / 2;
-        const anchor: [number, number, number] = [position.x, BOARD_Y + size[2], position.z];
-        if (placement === "right") anchor[0] += extentX;
-        if (placement === "left") anchor[0] -= extentX;
-        if (placement === "above") anchor[2] -= extentZ;
-        if (placement === "below") anchor[2] += extentZ;
+        const top = BOARD_Y + size[2];
+        const anchors: Record<Placement, THREE.Vector3> = {
+          right: new THREE.Vector3(position.x + extentX, top, position.z),
+          left: new THREE.Vector3(position.x - extentX, top, position.z),
+          above: new THREE.Vector3(position.x, top, position.z - extentZ),
+          below: new THREE.Vector3(position.x, top, position.z + extentZ),
+        };
 
         // Link from the socket edge to the module's chip-facing side.
         const startRadius = SOCKET_HALF / Math.max(Math.abs(dir.x), Math.abs(dir.y));
@@ -94,8 +107,9 @@ function useLayouts(stacked: boolean): ModuleLayout[] {
           dir,
           angle: rad,
           size,
-          placement,
-          labelAnchor: anchor,
+          placements,
+          anchors,
+          labelOrigin: [position.x, top, position.z] as [number, number, number],
           linkLength,
           linkStart,
         };
@@ -107,6 +121,44 @@ function useLayouts(stacked: boolean): ModuleLayout[] {
 interface DieTextures {
   map: THREE.Texture;
   emissiveMap: THREE.Texture;
+}
+
+const COPY_MARGIN = 12;
+const LABEL_GAP = 16;
+const HEADER_HEIGHT = 72;
+const projected = new THREE.Vector3();
+
+interface Rect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+function toScreen(point: THREE.Vector3, camera: THREE.Camera, width: number, height: number) {
+  projected.copy(point).project(camera);
+  return {
+    x: (projected.x * 0.5 + 0.5) * width,
+    y: (-projected.y * 0.5 + 0.5) * height,
+    inFront: projected.z < 1,
+  };
+}
+
+function labelRect(placement: Placement, x: number, y: number, w: number, h: number): Rect {
+  switch (placement) {
+    case "right":
+      return { left: x + LABEL_GAP, top: y - h / 2, right: x + LABEL_GAP + w, bottom: y + h / 2 };
+    case "left":
+      return { left: x - LABEL_GAP - w, top: y - h / 2, right: x - LABEL_GAP, bottom: y + h / 2 };
+    case "above":
+      return { left: x - w / 2, top: y - LABEL_GAP - h, right: x + w / 2, bottom: y - LABEL_GAP };
+    case "below":
+      return { left: x - w / 2, top: y + LABEL_GAP, right: x + w / 2, bottom: y + LABEL_GAP + h };
+  }
+}
+
+function intersects(a: Rect, b: Rect, pad: number): boolean {
+  return a.right > b.left - pad && a.left < b.right + pad && a.bottom > b.top - pad && a.top < b.bottom + pad;
 }
 
 function SubsystemModule({ layout, die }: { layout: ModuleLayout; die: DieTextures }) {
@@ -150,8 +202,10 @@ function SubsystemModule({ layout, die }: { layout: ModuleLayout; die: DieTextur
   );
 
   const glow = useRef(0);
+  const labelFade = useRef(0);
+  const originPoint = useMemo(() => new THREE.Vector3(...layout.labelOrigin), [layout]);
 
-  useFrame((_, delta) => {
+  useFrame(({ camera, size: viewport }, delta) => {
     const reduced = motionPrefs.reduced;
     // Staggered rise: each module starts a little after the previous one.
     const rise = clamp(liveScene.moduleRise * 1.5 - index * 0.1, 0, 1);
@@ -184,13 +238,46 @@ function SubsystemModule({ layout, die }: { layout: ModuleLayout; die: DieTextur
         .multiplyScalar(power * (1.6 + glow.current * 1.8 + interactionState.pulse * 0.4));
     }
 
-    if (label.current) {
-      // Labels only once the diagram has settled (the section is centred);
-      // mid-scroll the camera framing hasn't cleared the copy yet.
-      const labelOpacity = clamp((liveScene.moduleRise - 0.9) / 0.08, 0, 1);
-      const visible = labelOpacity > 0.01;
-      label.current.style.opacity = String(labelOpacity);
-      label.current.style.visibility = visible ? "visible" : "hidden";
+    const labelEl = label.current;
+    const tag = labelEl?.firstElementChild as HTMLElement | null | undefined;
+    if (labelEl && tag) {
+      // The copy scrolls over a fixed scene, so at some scroll positions (and
+      // on narrower screens) a label's preferred side lands on the heading.
+      // Predict each candidate side's on-screen box from the current camera
+      // and take the first one clear of the copy and the header; hide the
+      // label only if no side fits.
+      const settled = clamp((liveScene.moduleRise - 0.9) / 0.08, 0, 1);
+      const copy = document.getElementById("arch-copy")?.getBoundingClientRect();
+      const origin = toScreen(originPoint, camera, viewport.width, viewport.height);
+      const w = tag.offsetWidth;
+      const h = tag.offsetHeight;
+      let chosen: Placement | null = null;
+      let ax = 0;
+      let ay = 0;
+      if (settled > 0 && origin.inFront) {
+        for (const placement of layout.placements) {
+          const a = toScreen(layout.anchors[placement], camera, viewport.width, viewport.height);
+          const r = labelRect(placement, a.x, a.y, w, h);
+          const onScreen =
+            r.left >= 0 && r.right <= viewport.width && r.top >= HEADER_HEIGHT && r.bottom <= viewport.height;
+          if (onScreen && !(copy && intersects(r, copy, COPY_MARGIN))) {
+            chosen = placement;
+            ax = a.x;
+            ay = a.y;
+            break;
+          }
+        }
+      }
+      if (chosen) {
+        labelEl.style.transform = `translate(${ax - origin.x}px, ${ay - origin.y}px) ${LABEL_TRANSFORM[chosen]}`;
+      }
+      const target = chosen ? settled : 0;
+      // Snap out on contact, ease back in once clear.
+      labelFade.current =
+        target < labelFade.current ? target : damp(labelFade.current, target, 10, delta);
+      const visible = labelFade.current > 0.02;
+      labelEl.style.opacity = String(visible ? labelFade.current : 0);
+      labelEl.style.visibility = visible ? "visible" : "hidden";
     }
   });
 
@@ -243,14 +330,14 @@ function SubsystemModule({ layout, die }: { layout: ModuleLayout; die: DieTextur
       </group>
 
       <Html
-        position={layout.labelAnchor}
+        position={layout.labelOrigin}
         portal={portal}
         zIndexRange={[30, 20]}
         pointerEvents="none"
       >
         <div
           ref={label}
-          style={{ transform: LABEL_TRANSFORM[layout.placement], opacity: 0, visibility: "hidden" }}
+          style={{ opacity: 0, visibility: "hidden" }}
           className="relative w-max"
         >
           <button
@@ -270,7 +357,7 @@ function SubsystemModule({ layout, die }: { layout: ModuleLayout; die: DieTextur
             id={`${node.id}-tooltip`}
             role="tooltip"
             className={`pointer-events-none absolute top-full mt-2 w-48 ${
-              layout.placement === "left" ? "right-0" : "left-0"
+              layout.placements[0] === "left" ? "right-0" : "left-0"
             } border border-white/10 bg-[#08080a]/95 p-3 text-[11px] leading-relaxed text-[#a3a3aa] shadow-xl transition-opacity duration-300 ${
               hovered ? "opacity-100" : "opacity-0"
             }`}
