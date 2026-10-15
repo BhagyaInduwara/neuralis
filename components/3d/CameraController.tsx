@@ -54,7 +54,10 @@ export default function CameraController({ isMobile = false }: CameraControllerP
       Object.assign(liveScene, REDUCED_POSE, {
         target: targetArray,
         shiftX: stacked ? 0 : REDUCED_POSE.shiftX,
-        shiftY: stacked ? -0.2 : REDUCED_POSE.shiftY,
+        shiftY: stacked ? -0.3 : REDUCED_POSE.shiftY,
+        // Top-down on phones: the stacked label layout assumes that view.
+        azimuth: stacked ? 0 : REDUCED_POSE.azimuth,
+        elevation: stacked ? 88 : REDUCED_POSE.elevation,
         moduleRise: rise,
       });
       targetArray[0] = REDUCED_POSE.target[0];

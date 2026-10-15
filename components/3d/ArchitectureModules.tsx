@@ -185,8 +185,11 @@ function SubsystemModule({ layout, die }: { layout: ModuleLayout; die: DieTextur
     }
 
     if (label.current) {
-      const visible = opacity > 0.6;
-      label.current.style.opacity = String(clamp((opacity - 0.6) / 0.4, 0, 1));
+      // Labels only once the diagram has settled (the section is centred);
+      // mid-scroll the camera framing hasn't cleared the copy yet.
+      const labelOpacity = clamp((liveScene.moduleRise - 0.9) / 0.08, 0, 1);
+      const visible = labelOpacity > 0.01;
+      label.current.style.opacity = String(labelOpacity);
       label.current.style.visibility = visible ? "visible" : "hidden";
     }
   });
