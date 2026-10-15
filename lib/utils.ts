@@ -32,6 +32,19 @@ export function smoothstep(edge0: number, edge1: number, x: number): number {
   return t * t * (3 - 2 * t);
 }
 
+/** Frame-rate independent version of a per-frame `lerp(a, b, factor)` tuned at 60fps. */
+export function lerpFactor(perFrame: number, dt: number): number {
+  return 1 - Math.pow(1 - perFrame, dt * 60);
+}
+
+/** "Lub-dub" pulse every `period` seconds, 0 at rest, ~1 at the first beat. */
+export function heartbeat(time: number, period = 3): number {
+  const t = time % period;
+  const lub = Math.exp(-Math.pow((t - 0.12) / 0.07, 2));
+  const dub = 0.55 * Math.exp(-Math.pow((t - 0.36) / 0.09, 2));
+  return lub + dub;
+}
+
 /** Deterministic pseudo-random generator so procedural geometry is stable across renders. */
 export function mulberry32(seed: number): () => number {
   let a = seed;

@@ -2,14 +2,39 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { setConsoleFunction } from "three";
 import Chip from "./Chip";
 import CircuitBoard from "./CircuitBoard";
-import EnergyPulses from "./EnergyPulses";
-import Particles from "./Particles";
+import DataPulses from "./DataPulses";
+import Dust from "./Dust";
+import ArchitectureModules from "./ArchitectureModules";
 import Lighting from "./Lighting";
 import CameraController from "./CameraController";
 import PostFX from "./PostFX";
+import { generateCircuitPaths } from "@/lib/circuitPaths";
 import { useIsTouch } from "@/hooks/useIsTouch";
+
+/**
+ * Drops two known-benign upstream notices and forwards everything else:
+ * R3F 9 still constructs a THREE.Clock (deprecated in three r183), and on
+ * Windows ANGLE's D3D compiler reports X4122 float-folding notes for three's
+ * own shader chunks via the program info log. Real shader errors (or info
+ * logs containing anything else) still come through.
+ */
+function isBenignThreeNotice(message: unknown, params: unknown[]): boolean {
+  if (typeof message !== "string") return false;
+  if (message.startsWith("THREE.Clock: This module has been deprecated")) return true;
+  if (message === "THREE.WebGLProgram: Program Info Log:" && typeof params[0] === "string") {
+    const lines = params[0].trim().split("\n");
+    return lines.every((line) => line.includes("warning X4122"));
+  }
+  return false;
+}
+
+setConsoleFunction((method: string, message: string, ...params: unknown[]) => {
+  if (isBenignThreeNotice(message, params)) return;
+  (console[method as "log" | "warn" | "error"] ?? console.log)(message, ...params);
+});
 
 interface ReadySignalProps {
   onConfirmed: () => void;
@@ -76,17 +101,26 @@ interface SceneProps {
 export default function Scene({ onReady }: SceneProps) {
   const isTouch = useIsTouch();
   const [canvasKey, setCanvasKey] = useState(0);
+  const [tabVisible, setTabVisible] = useState(true);
   const attempts = useRef(0);
   const reportedReady = useRef(false);
 
-  const quality: "high" | "low" = useMemo(() => {
-    if (typeof window === "undefined") return "high";
-    return isTouch || window.innerWidth < 820 ? "low" : "high";
+  const isMobile = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return isTouch || window.innerWidth < 768;
   }, [isTouch]);
 
-  const traceCount = quality === "high" ? 42 : 24;
-  const dpr: [number, number] = quality === "high" ? [1, 2] : [1, 1.3];
-  const isMobile = quality === "low";
+  const traceCount = isMobile ? 30 : 60;
+  const pulseCount = isMobile ? 60 : 120;
+  const dustCount = isMobile ? 200 : 400;
+  const dpr: [number, number] = isMobile ? [1, 1] : [1, 1.75];
+  const traces = useMemo(() => generateCircuitPaths(9137, traceCount), [traceCount]);
+
+  useEffect(() => {
+    const onVisibility = () => setTabVisible(document.visibilityState === "visible");
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
 
   const reportReady = useCallback(() => {
     if (reportedReady.current) return;
@@ -115,15 +149,16 @@ export default function Scene({ onReady }: SceneProps) {
     <Canvas
       key={canvasKey}
       dpr={dpr}
+      frameloop={tabVisible ? "always" : "never"}
       gl={{
         antialias: false,
         powerPreference: "high-performance",
         alpha: false,
         preserveDrawingBuffer: true,
       }}
-      camera={{ position: [0, 2.05, 7.2], fov: 27, near: 0.1, far: 60 }}
+      camera={{ position: [0, 3, 9], fov: 30, near: 0.1, far: 120 }}
       onCreated={({ gl }) => {
-        gl.setClearColor("#050506", 1);
+        gl.setClearColor("#050505", 1);
       }}
     >
       <ReadySignal onConfirmed={reportReady} onSuspectBlank={handleSuspectBlank} />
@@ -131,12 +166,13 @@ export default function Scene({ onReady }: SceneProps) {
       <Lighting />
       <Suspense fallback={null}>
         <Chip />
-        <CircuitBoard count={traceCount} quality={quality} />
-        <EnergyPulses count={traceCount} maxPulses={quality === "high" ? 16 : 8} />
-        <Particles quality={quality} />
+        <CircuitBoard traces={traces} />
+        <DataPulses traces={traces} count={pulseCount} />
+        <ArchitectureModules />
+        <Dust count={dustCount} />
       </Suspense>
-      <fog attach="fog" args={["#050506", 8, 22]} />
-      <PostFX quality={quality} />
+      <fogExp2 attach="fog" args={["#050505", 0.035]} />
+      <PostFX isMobile={isMobile} />
     </Canvas>
   );
 }

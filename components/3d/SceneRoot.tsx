@@ -16,7 +16,10 @@ export default function SceneRoot({ onReady }: SceneRootProps) {
   const [webglOk, setWebglOk] = useState<boolean | null>(null);
 
   useEffect(() => {
-    setWebglOk(isWebGLAvailable());
+    const ok = isWebGLAvailable();
+    setWebglOk(ok);
+    // Lets CSS surface DOM fallbacks for content that otherwise lives in 3D.
+    document.documentElement.dataset.webgl = ok ? "on" : "off";
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/* Portrait or narrow screens stack the copy above the 3D subject. */
+@custom-variant stacked {
+  @media (max-aspect-ratio: 1/1) {
+    @slot;
+  }
+  @media (max-width: 767px) {
+    @slot;
+  }
+}
+
 :root {
   --color-black: #050506;
   --color-charcoal: #0a0a0c;
@@ -69,6 +79,27 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* The architecture subsystems are labelled in 3D; this list is the screen
+   reader copy, and becomes visible when there is no WebGL scene. */
+.arch-list {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+html[data-webgl="off"] .arch-list {
+  position: static;
+  display: grid;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
 }
 
 .mobile-nav-item {

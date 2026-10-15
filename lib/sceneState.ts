@@ -10,6 +10,11 @@ export const scrollState = {
   progress: 0,
   /** Signed scroll velocity, roughly -1 -> 1, decays toward 0 when idle. */
   velocity: 0,
+  /** Continuous section index: an integer exactly when that section is
+   * centred in the viewport, fractional while travelling between two. */
+  section: 0,
+  /** Each section's anchor as a fraction of total scroll (for the progress rail). */
+  anchors: [] as number[],
 };
 
 export const pointerState = {
@@ -32,4 +37,20 @@ export const interactionState = {
 
 export const motionPrefs = {
   reduced: false,
+};
+
+/** 0 until the preloader exits, then animated to 1 as the chip powers on. */
+export const introState = {
+  power: 0,
+};
+
+/**
+ * A light wave travelling outward along the traces from the chip. `radius` is
+ * the wavefront's distance along the trace network; `afterglow` keeps
+ * everything inside the front lit until it is faded back down.
+ */
+export const waveState = {
+  radius: -10,
+  strength: 0,
+  afterglow: 0,
 };

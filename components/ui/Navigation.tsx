@@ -29,15 +29,7 @@ function NavLink({
 }
 
 export default function Navigation() {
-  const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -78,14 +70,14 @@ export default function Navigation() {
   };
 
   return (
-    <header
-      className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "border-b border-white/[0.06] bg-[#050506]/70 backdrop-blur-md"
-          : "border-b border-transparent bg-transparent"
-      }`}
-    >
-      <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 py-5 md:px-10">
+    <header className="fixed inset-x-0 top-0 z-50 h-[72px]">
+      {/* Solid black behind the logo row, fading out below it; the blur is
+          masked with the same ramp so it has no hard bottom edge. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[linear-gradient(#000_60%,transparent)] backdrop-blur-md [mask-image:linear-gradient(#000_60%,transparent)]"
+      />
+      <div className="relative mx-auto flex h-full max-w-[1600px] items-center justify-between px-6 md:px-10">
         <a
           href="#hero"
           onClick={(e) => {
@@ -145,7 +137,7 @@ export default function Navigation() {
       {menuOpen && (
         <nav
           aria-label="Mobile"
-          className="fixed inset-0 top-[73px] z-40 flex flex-col justify-between bg-[#050506] px-6 pb-10 pt-8 md:hidden"
+          className="fixed inset-0 top-[72px] z-40 flex flex-col justify-between bg-[#050506] px-6 pb-10 pt-8 md:hidden"
         >
           <div className="flex flex-col gap-1">
             {NAV_LINKS.map((link, i) => (

@@ -4,9 +4,13 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import ProceduralChip from "./ProceduralChip";
-import { pointerState, scrollState, motionPrefs } from "@/lib/sceneState";
-import { evaluateSceneKeyframes } from "@/lib/sceneKeyframes";
-import { damp } from "@/lib/utils";
+import { pointerState, motionPrefs } from "@/lib/sceneState";
+import { liveScene } from "@/lib/sceneFrame";
+import { damp, lerpFactor } from "@/lib/utils";
+
+const MAX_TILT = THREE.MathUtils.degToRad(4);
+const FLOAT_AMPLITUDE = 0.05;
+const FLOAT_PERIOD = 6;
 
 /**
  * Chip is the stable public surface for the hero object: it owns idle motion,
@@ -23,35 +27,20 @@ export default function Chip() {
     const innerGroup = inner.current;
     if (!outerGroup || !innerGroup) return;
 
-    const scene = evaluateSceneKeyframes(scrollState.progress);
-
-    outerGroup.position.set(...scene.chipPos);
-    const targetScale = scene.chipScale;
-    outerGroup.scale.setScalar(
-      damp(outerGroup.scale.x, targetScale, 4, delta)
-    );
+    outerGroup.scale.setScalar(damp(outerGroup.scale.x, liveScene.chipScale, 4, delta));
 
     const reduced = motionPrefs.reduced;
     const t = state.clock.elapsedTime;
-
-    // Idle living-machine motion: a slow, bounded sway rather than a full
-    // rotation — two incommensurate sine waves keep it from ever repeating
-    // in an obvious loop or reading as a product turntable.
-    const swaySpeed = reduced ? 0.15 : 1;
-    const swayY = reduced
+    innerGroup.position.y = reduced
       ? 0
-      : Math.sin(t * 0.09) * 0.22 + Math.sin(t * 0.031) * 0.14;
-    const floatY = reduced ? 0 : Math.sin(t * 0.55 * swaySpeed) * 0.035;
-    const breathe = reduced ? 0 : Math.sin(t * 0.35 * swaySpeed) * 0.012;
+      : Math.sin((t / FLOAT_PERIOD) * Math.PI * 2) * FLOAT_AMPLITUDE;
 
-    // Pointer-driven tilt, heavily damped so it feels fluid rather than direct.
-    const tiltX = reduced ? 0 : pointerState.targetY * 0.14;
-    const tiltZ = reduced ? 0 : -pointerState.targetX * 0.16;
-
-    innerGroup.rotation.x = damp(innerGroup.rotation.x, tiltX + breathe, 2.4, delta);
-    innerGroup.rotation.y = damp(innerGroup.rotation.y, swayY, 1.6, delta);
-    innerGroup.rotation.z = damp(innerGroup.rotation.z, tiltZ, 2.4, delta);
-    innerGroup.position.y = damp(innerGroup.position.y, floatY, 2.4, delta);
+    // Tilt so the die face turns toward the cursor, lerped 0.05/frame.
+    const k = lerpFactor(0.05, delta);
+    const tiltX = reduced ? 0 : pointerState.targetY * MAX_TILT;
+    const tiltZ = reduced ? 0 : -pointerState.targetX * MAX_TILT;
+    innerGroup.rotation.x += (tiltX - innerGroup.rotation.x) * k;
+    innerGroup.rotation.z += (tiltZ - innerGroup.rotation.z) * k;
   });
 
   return (
