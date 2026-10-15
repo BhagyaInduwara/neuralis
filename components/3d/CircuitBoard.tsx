@@ -129,9 +129,11 @@ function Socket() {
 
 interface TracesProps {
   traces: CircuitTrace[];
+  /** Multiplier on glow and line width; small screens need more to read. */
+  boost: number;
 }
 
-function Traces({ traces }: TracesProps) {
+function Traces({ traces, boost }: TracesProps) {
   const size = useThree((s) => s.size);
   const segments = useMemo(() => subdivideTraces(traces, 0.3), [traces]);
 
@@ -153,7 +155,7 @@ function Traces({ traces }: TracesProps) {
     geometry.setColors(colorArray);
     const material = new LineMaterial({
       vertexColors: true,
-      linewidth: 1.75,
+      linewidth: 1.75 * Math.sqrt(boost),
       worldUnits: false,
     });
     material.fog = true;
@@ -170,7 +172,7 @@ function Traces({ traces }: TracesProps) {
       distances: dist,
       activeFlags: active,
     };
-  }, [segments, traces]);
+  }, [segments, traces, boost]);
 
   useEffect(
     () => () => {
@@ -197,7 +199,7 @@ function Traces({ traces }: TracesProps) {
     const array = colors.array as Float32Array;
 
     for (let i = 0; i < activeFlags.length; i++) {
-      const activeGlow = activeFlags[i] ? glow.current : glow.current * 0.08;
+      const activeGlow = (activeFlags[i] ? glow.current : glow.current * 0.08) * boost;
       for (let end = 0; end < 2; end++) {
         const d = distances[i * 2 + end];
         const front = (d - radius) / WAVE_WIDTH;
@@ -220,14 +222,15 @@ function Traces({ traces }: TracesProps) {
 
 interface CircuitBoardProps {
   traces: CircuitTrace[];
+  boost?: number;
 }
 
-export default function CircuitBoard({ traces }: CircuitBoardProps) {
+export default function CircuitBoard({ traces, boost = 1 }: CircuitBoardProps) {
   return (
     <group>
       <Board />
       <Socket />
-      <Traces traces={traces} />
+      <Traces traces={traces} boost={boost} />
     </group>
   );
 }

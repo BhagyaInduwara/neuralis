@@ -2,6 +2,8 @@
 
 A cinematic, scroll-driven landing page for Neuralis, a fictional compute-hardware company. A fixed full-screen WebGL scene renders a procedural processor on an endless circuit board, and the camera flies through it as you scroll.
 
+**Live demo:** [neuralis-3d.netlify.app](https://neuralis-3d.netlify.app/)
+
 ## Features
 
 - **Procedural chip**: beveled graphite package, gold edge pads, heat-spreader rim and a raised die. The die's circuit texture is generated on a canvas at runtime. The chip floats, pulses on a 3s beat and tilts toward the cursor.

@@ -176,8 +176,8 @@ export const MOBILE_KEYFRAMES: SceneKeyframe[] = [
   { at: 3.12, ...mobile({ ...ARCH, fit: 4.4 }, -0.2) },
   { at: 3.85, ...mobile({ ...ABOUT_IN, azimuth: 44 }, -0.2) },
   { at: 4.15, ...mobile({ ...ABOUT_OUT, azimuth: 30 }, -0.2) },
-  { at: 4.9, ...mobile(CTA, -0.3) },
-  { at: 5, ...mobile(CTA, -0.3) },
+  { at: 4.9, ...mobile(CTA, -0.4) },
+  { at: 5, ...mobile(CTA, -0.4) },
 ];
 
 /** prefers-reduced-motion: one static, high pose for the whole page, steep

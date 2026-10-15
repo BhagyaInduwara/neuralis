@@ -113,6 +113,8 @@ export default function Scene({ onReady }: SceneProps) {
   const traceCount = isMobile ? 30 : 60;
   const pulseCount = isMobile ? 60 : 120;
   const dustCount = isMobile ? 200 : 400;
+  // Fewer, thinner-looking traces at DPR 1 read dim on phones; compensate.
+  const glowBoost = isMobile ? 1.5 : 1;
   const dpr: [number, number] = isMobile ? [1, 1] : [1, 1.75];
   const traces = useMemo(() => generateCircuitPaths(9137, traceCount), [traceCount]);
 
@@ -166,8 +168,8 @@ export default function Scene({ onReady }: SceneProps) {
       <Lighting />
       <Suspense fallback={null}>
         <Chip />
-        <CircuitBoard traces={traces} />
-        <DataPulses traces={traces} count={pulseCount} />
+        <CircuitBoard traces={traces} boost={glowBoost} />
+        <DataPulses traces={traces} count={pulseCount} boost={glowBoost} />
         <ArchitectureModules />
         <Dust count={dustCount} />
       </Suspense>

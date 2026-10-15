@@ -81,6 +81,28 @@ body {
   }
 }
 
+/* Darkens the area behind section copy: a side glow beside the scene on wide
+   layouts, a top-down fade on stacked ones so the subject below stays bright. */
+.copy-scrim {
+  background: radial-gradient(
+    120% 90% at 0% 45%,
+    rgba(5, 5, 6, 0.88) 0%,
+    rgba(5, 5, 6, 0.6) 50%,
+    rgba(5, 5, 6, 0) 88%
+  );
+}
+
+@media (max-aspect-ratio: 1/1), (max-width: 767px) {
+  .copy-scrim {
+    background: linear-gradient(
+      to bottom,
+      rgba(5, 5, 6, 0.85) 0%,
+      rgba(5, 5, 6, 0.55) 45%,
+      rgba(5, 5, 6, 0) 66%
+    );
+  }
+}
+
 /* The architecture subsystems are labelled in 3D; this list is the screen
    reader copy, and becomes visible when there is no WebGL scene. */
 .arch-list {

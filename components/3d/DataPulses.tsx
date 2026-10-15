@@ -29,9 +29,10 @@ interface Pulse {
 interface DataPulsesProps {
   traces: CircuitTrace[];
   count: number;
+  boost?: number;
 }
 
-export default function DataPulses({ traces, count }: DataPulsesProps) {
+export default function DataPulses({ traces, count, boost = 1 }: DataPulsesProps) {
   const pulseMesh = useRef<THREE.InstancedMesh>(null);
   const viaMesh = useRef<THREE.InstancedMesh>(null);
   const vias = useMemo(() => collectVias(traces), [traces]);
@@ -140,10 +141,10 @@ export default function DataPulses({ traces, count }: DataPulsesProps) {
         const intensity = fadeIn * fadeOut * tailFade * power;
 
         dummy.position.set(point[0], point[1] + 0.012, point[2]);
-        dummy.scale.setScalar(1 - k * 0.12);
+        dummy.scale.setScalar((1 - k * 0.12) * Math.sqrt(boost));
         dummy.updateMatrix();
         heads.setMatrixAt(index, dummy.matrix);
-        heads.setColorAt(index, color.copy(PULSE_COLOR).multiplyScalar(intensity * 3.2));
+        heads.setColorAt(index, color.copy(PULSE_COLOR).multiplyScalar(intensity * 3.2 * boost));
       }
     }
     heads.instanceMatrix.needsUpdate = true;

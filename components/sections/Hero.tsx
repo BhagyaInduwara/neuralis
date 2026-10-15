@@ -45,11 +45,7 @@ export default function Hero({ play }: HeroProps) {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-0 w-full sm:w-[65%] lg:w-[55%]"
-        style={{
-          background:
-            "radial-gradient(120% 90% at 0% 45%, rgba(5,5,6,0.88) 0%, rgba(5,5,6,0.6) 50%, rgba(5,5,6,0) 88%)",
-        }}
+        className="copy-scrim pointer-events-none absolute inset-y-0 left-0 z-0 w-full sm:w-[65%] lg:w-[55%]"
       />
 
       <div className="relative z-10 max-w-[40rem]">
@@ -64,7 +60,7 @@ export default function Hero({ play }: HeroProps) {
           play={play}
           delay={0.15}
           lines={["COMPUTING", "BEYOND", { text: "THE POSSIBLE.", className: "text-[#8a8a8f]" }]}
-          className="text-[clamp(2.6rem,min(13vw,11svh),5rem)] font-semibold leading-[0.95] tracking-tight text-[#f5f5f2]"
+          className="text-[clamp(2.4rem,min(10.4vw,11svh),5rem)] font-semibold leading-[0.95] tracking-tight text-[#f5f5f2]"
         />
 
         <p className="hero-sub mt-8 max-w-md text-balance text-[15px] leading-relaxed text-[#a3a3aa]">

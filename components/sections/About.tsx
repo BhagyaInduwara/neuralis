@@ -35,11 +35,7 @@ export default function About() {
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-0 w-full sm:w-[70%] lg:w-[60%]"
-        style={{
-          background:
-            "radial-gradient(120% 90% at 0% 45%, rgba(5,5,6,0.85) 0%, rgba(5,5,6,0.55) 50%, rgba(5,5,6,0) 88%)",
-        }}
+        className="copy-scrim pointer-events-none absolute inset-y-0 left-0 z-0 w-full sm:w-[70%] lg:w-[60%]"
       />
 
       <div className="relative z-10 max-w-2xl">
